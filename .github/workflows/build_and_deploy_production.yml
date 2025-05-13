@@ -3,13 +3,55 @@ on:
   push:
     branches:
       - master
+      - containers
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  ECR_REPOSITORY: borrowaboat
+  IMAGE_TAG: latest
+
 jobs:
+  code_review:
+    name: Run Code Review Tools
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      - name: Cache Vendor
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-vendor-${{ hashFiles('**/composer.lock') }}
+
+      - name: "Install Dependencies"
+        run: composer install -q --no-ansi --no-interaction
+
+      - name: Ensure Cache Directory Exists
+        run: mkdir -p ./storage/rector/cache
+
+      - name: Run Rector
+        run: composer rector
+
+      - name: Run Pint
+        run: composer pint
+
+      - name: Commit Fixes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "[ ci-review ] ${{ matrix.tool }}"
+
   testsphp:
+    needs: code_review
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -67,3 +109,34 @@ jobs:
 
       - name: Execute Tests
         run: php artisan test
+
+  build_webapp:
+    name: Build Web App containers
+    needs: testsphp
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG -f .docker/php/Dockerfile .
+
+      - name: Tag image for ECR
+        run: |
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+
+      - name: Push image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG

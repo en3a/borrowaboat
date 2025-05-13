@@ -1,0 +1,6 @@
+.idea
+.vscode
+.github
+tests
+*Test.php
+*.tar.gz

@@ -1,0 +1,67 @@
+version: '3.7'
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile.dev
+    container_name: webapp
+    restart: always
+    depends_on:
+      - webserver
+    tty: true
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - .docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - .docker/php/opcache-dev.ini:/usr/local/etc/php/conf.d/opcache.ini
+    networks:
+      - internal-network
+
+  #Nginx Service
+  webserver:
+    build:
+      context: .
+      dockerfile: .docker/nginx/Dockerfile.dev
+    container_name: webserver
+    restart: always
+    working_dir: /var/www
+    depends_on:
+      - database-service
+    tty: true
+    ports:
+      - "4433:443"
+    volumes:
+      - ./:/var/www
+      - .docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - .docker/nginx/ssl/:/etc/nginx/certs/ssl/
+    networks:
+      - internal-network
+
+  #MySQL Service
+  database-service:
+    image: mysql:8
+    container_name: database-service
+    restart: unless-stopped
+    tty: true
+    environment:
+      MYSQL_DATABASE: borrowaboat
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: prod
+      SERVICE_NAME: mysql
+    ports:
+      - "33062:3306"
+    volumes:
+      - dbdata:/var/lib/mysql/
+      - .docker/mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - internal-network
+
+#Volumes
+networks:
+  internal-network:
+    driver: bridge
+volumes:
+  dbdata:
+    driver: local

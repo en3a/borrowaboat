@@ -1,0 +1,12 @@
+FROM nginx:alpine
+
+RUN apk update \
+    && apk upgrade \
+    && apk add \
+    vim \
+    curl \
+    wget \
+    nano
+
+# Set working directory
+WORKDIR /var/www

@@ -36,6 +36,11 @@ jobs:
         if: steps.cache-vendor.outputs.cache-hit != 'true'
         run: composer install -q --no-ansi --no-interaction
 
+      - name: Create SQLite Database File
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
       - name: Prepare
         run: |
           php artisan optimize:clear

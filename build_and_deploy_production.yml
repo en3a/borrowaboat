@@ -1,0 +1,71 @@
+name: Build and Deploy to Production
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testsphp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        env:
+          runner: ubuntu-latest
+        with:
+          php-version: 8.3
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, mysqli, pdo_mysql, bcmath, soap, intl, gd, exif, iconv, imagick
+          ini-values: memory_limit=8000M, max_input_time=6000, max_execution_time=5000
+
+      - name: Cache Vendor
+        id: cache-vendor
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-vendor-${{ hashFiles('**/composer.lock') }}
+
+      - name: "Install Dependencies"
+        if: steps.cache-vendor.outputs.cache-hit != 'true' # Skip if cache hit
+        run: composer install -q --no-ansi --no-interaction
+
+      - name: Prepare
+        run: |
+          php artisan optimize:clear
+          php artisan view:clear
+          php artisan optimize
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/jod'
+
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install frontend dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' # Skip if cache hit
+        run: npm install
+
+      - name: Build Frontend
+        run: npm run build
+
+      - name: Clear laravel cache
+        run: |
+          composer dumpautoload
+          php artisan optimize:clear
+          php artisan view:clear
+
+      - name: Run tests
+        run: php artisan test

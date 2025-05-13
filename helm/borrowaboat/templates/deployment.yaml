@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: borrowaboat
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: borrowaboat
+  template:
+    metadata:
+      labels:
+        app: borrowaboat
+    spec:
+      containers:
+        - name: borrowaboat
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /var/www/storage
+              name: persistent-storage
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: borrowaboat-pvc

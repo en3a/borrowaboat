@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - containers
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

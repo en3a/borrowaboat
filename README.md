@@ -1,61 +1,159 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <a href="https://laravel.com" target="_blank">
+    <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo">
+  </a>
 </p>
 
-## About Laravel
+<p align="center">
+  <a href="https://github.com/en3a/borrowaboat/actions">
+    <img src="https://github.com/en3a/borrowaboat/actions/workflows/build_and_deploy_production.yml/badge.svg" alt="Build Status">
+  </a>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# 🚤 Borrow a Boat
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Borrow a Boat** is a modern, scalable web platform built with **Laravel 12** and **React.js**. It allows partners to onboard and list boats while enabling clients to browse and book listings based on their preferences. The platform follows clean architectural principles and is fully containerized, supporting modern deployment pipelines using AWS and Kubernetes.
 
-## Learning Laravel
+This project is designed for maintainability, developer productivity, and scalability, with a clear separation between domains, infrastructure, and presentation layers.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🧰 Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend:** Laravel 12 (PHP 8.3)
+- **Frontend:** React.js with Vite and TailwindCSS
+- **Database:** MySQL (SQLite for testing)
+- **DevOps:** Docker, Docker Compose
+- **CI/CD:** GitHub Actions + Amazon ECR + Helm (Kubernetes-ready)
+- **Others:** Node.js 22.x, Composer, npm
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🧱 Architecture
 
-### Premium Partners
+The project uses **Domain-Driven Design (DDD)** principles to isolate core business logic from the infrastructure and application layers. This improves code modularity, testability, and long-term maintainability.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+### Why Domain-Driven Design?
 
-## Contributing
+- Encourages a **clear boundary between domain logic and delivery mechanisms**.
+- Makes the system easier to test and scale.
+- Promotes separation of concerns and reusability.
+- Allows isolated iteration on domains without affecting unrelated areas of the codebase.
+- Future-proofs the architecture for features like microservices, API modules, or background jobs.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Example structure:
 
-## Code of Conduct
+```
+src/
+├── Domain/
+│   └── Listings/           # Domain logic and aggregates
+├── InternalApi/
+│   └── Listings/Controllers, Resources, Requests
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## ⚙️ Installation
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 🔧 Manual Setup
 
-## License
+#### Backend dependencies
+```bash
+composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Frontend dependencies
+```bash
+npm install
+npm run build
+```
+
+#### Environment and database setup
+```bash
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+```
+
+The seeder will generate 5 demo listings and one test user:
+
+```
+Email: test@example.com
+Password: secret1234
+```
+
+---
+
+## 🐳 Local Development with Docker
+
+The app is containerized using Docker and includes a pre-configured **Docker Compose** environment.
+
+To start the environment:
+
+```bash
+docker compose up -d
+```
+
+This will launch:
+- PHP FPM application container
+- Nginx webserver with SSL (self-signed)
+- MySQL database service
+
+Accessible via: https://localhost:4433
+> *If prompted, accept the SSL warning in your browser.*
+
+---
+
+## ✅ Running Tests
+
+The project uses **PHPUnit** for backend tests with an in-memory **SQLite** database. Tests include seeding and run isolated from MySQL:
+
+```bash
+php artisan test
+```
+
+---
+
+## 🚀 CI/CD Pipeline (GitHub Actions)
+
+The pipeline is fully automated and includes:
+
+- 🔍 **Code review** via **Rector** and **Laravel Pint** for formatting and refactoring
+- ✅ **PHPUnit tests** using SQLite in-memory
+- 🐳 **Docker build** using a production-ready Dockerfile
+- 📦 **Push image** to **Amazon ECR**
+- ⛵ **Helm deployment** to a Kubernetes namespace (namespaced as `borrowaboat`)
+
+### Deployment
+
+Deploys are triggered on every push to:
+
+- `master` branch
+
+It uses Helm to deploy to a cluster with domain `borrowaboat.dev` via Ingress.
+
+> The Kubernetes credentials are mocked for now; the deployment step does not fail the pipeline if the cluster is not available (`continue-on-error: true`). This demonstrates deployment readiness without blocking development.
+
+---
+
+## 🗂 Project Structure
+
+- `/src` – Domain & Application layer
+- `/resources/js` – React + Vite frontend
+- `/routes` – Laravel route definitions
+- `/.docker` – Environment-specific configs
+- `/helm` – Helm charts for Kubernetes deployment
+- `/tests` – PHPUnit tests
+
+---
+
+## 🙌 Contributing
+
+PRs are welcome! Please follow DDD structure, and format code using:
+
+```bash
+composer pint
+composer rector
+```

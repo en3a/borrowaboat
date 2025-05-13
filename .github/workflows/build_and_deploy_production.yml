@@ -33,19 +33,20 @@ jobs:
           key: ${{ runner.os }}-vendor-${{ hashFiles('**/composer.lock') }}
 
       - name: "Install Dependencies"
-        if: steps.cache-vendor.outputs.cache-hit != 'true' # Skip if cache hit
+        if: steps.cache-vendor.outputs.cache-hit != 'true'
         run: composer install -q --no-ansi --no-interaction
 
       - name: Prepare
         run: |
           php artisan optimize:clear
           php artisan view:clear
-          php artisan optimize
+          php artisan config:clear
+          php artisan cache:clear
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 'lts/jod'
+          node-version: 'lts/*'
 
       - name: Cache Node Modules
         id: cache-node-modules
@@ -55,17 +56,11 @@ jobs:
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install frontend dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true' # Skip if cache hit
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Build Frontend
         run: npm run build
 
-      - name: Clear laravel cache
-        run: |
-          composer dumpautoload
-          php artisan optimize:clear
-          php artisan view:clear
-
-      - name: Run tests
+      - name: Execute Tests
         run: php artisan test

@@ -1,0 +1,13 @@
+{
+  "preset": "psr12",
+  "exclude": [
+    "node-modules",
+    ".docker",
+    ".github",
+    "bootstrap",
+    "storage",
+    "vendor",
+    "lang"
+  ],
+  "cache-file": "storage/pint.cache"
+}
